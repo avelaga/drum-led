@@ -1,9 +1,12 @@
+// developed by abhi velaga
+// github.com/avelaga/drum-led
+
 #include <FastLED.h>
 
 #define NUM_LEDS 40
 #define DATA_PIN 3
 const int knockSensor = A0;
-const int threshold = 1000;
+const int threshold = 500;
 const int maxRate = 75;
 const int hitIncrease = 15;
 const int restingHue = 232;
@@ -21,7 +24,6 @@ boolean on = true;
 void setup() {
   LEDS.addLeds<WS2812, DATA_PIN, RGB>(leds, NUM_LEDS);
   LEDS.setBrightness(255);
-  Serial.begin(9600);
   frames = 0;
   rate = maxRate;
   hue = restingHue;
@@ -33,9 +35,9 @@ void setup() {
 
 void loop() {
   frames++;
+  // toggle on and off to create the seperated light strips
   if (frames % 5 == 0) {
     on = !on;
-    Serial.println(hue);
   }
 
   for (int a = NUM_LEDS - 1; a > 0; a--) {
@@ -48,11 +50,11 @@ void loop() {
     if (rate > hitIncrease) {
       rate -= hitIncrease;
       hue = map(rate, 1, 75, activeHue, restingHue);
-    } else {
+    } else { // delay is at shortest possible
       rate = 1;
       hue = map(rate, 1, 75, activeHue, restingHue);
     }
-  } else {
+  } else { // if not hit, increase delay until it's at max
     if (rate < maxRate) {
       rate++;
       hue = map(rate, 1, 75, activeHue, restingHue);
@@ -64,12 +66,13 @@ void loop() {
   } else {
     levelArray[0] = 0;
   }
-  set();
+
+  setLeds();
   FastLED.show();
   delay(rate);
 }
 
-void set() {
+void setLeds() {
   for (int i = 0; i < NUM_LEDS; i++) {
     leds[i] = CHSV(hue, 255, levelArray[i]);
   }
